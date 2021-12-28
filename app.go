@@ -8,6 +8,12 @@ import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 )
 
+type TxData struct {
+	PublicKey string
+	Signature string
+	Msg       string
+}
+
 type KVStoreApplication struct {
 	db           *badger.DB
 	currentBatch *badger.Txn
@@ -26,8 +32,10 @@ func (KVStoreApplication) Info(req abcitypes.RequestInfo) abcitypes.ResponseInfo
 }
 
 func (app *KVStoreApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.ResponseDeliverTx {
+	// fmt.Println("Inside DeliverTx")
 	code := app.isValid(req.Tx)
 	if code != 0 {
+		fmt.Println("DeliverTx code:", code)
 		return abcitypes.ResponseDeliverTx{Code: code}
 	}
 
@@ -40,7 +48,12 @@ func (app *KVStoreApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcityp
 		panic(err)
 	}
 
-	return abcitypes.ResponseDeliverTx{Code: 0}
+	return abcitypes.ResponseDeliverTx{Code: 0,
+		Events: []abcitypes.Event{
+			{
+				Type: "post", Attributes: []abcitypes.EventAttribute{{Key: "success", Value: "true", Index: true}},
+			},
+		}}
 }
 
 func (app *KVStoreApplication) Commit() abcitypes.ResponseCommit {
