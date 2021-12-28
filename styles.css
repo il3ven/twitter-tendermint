@@ -1,0 +1,36 @@
+html {
+    background-color: rgb(31, 31, 31);
+    color: white;
+}
+
+form > input {
+    width: 100%;
+    border-radius: 0.3rem;
+    font-weight: bold;
+    margin-top: 0.7rem;
+}
+
+form > input[type="text"] {
+    line-height: 18pt;
+    box-sizing: border-box;
+    background-color: transparent;
+    color: white;
+    border: 2px solid #5c5c5c;
+}
+
+form > input[type="text"]:nth-child(1) {
+    margin-top: initial;
+}
+
+form > input[type="submit"], input[type="button"] {
+    width: 100%;
+    border: none;
+    padding: 0.5rem;
+    background-color: rgb(231, 231, 231);
+    color: black;
+    cursor: pointer;
+}
+
+#keys {
+    word-break: break-all;
+}
