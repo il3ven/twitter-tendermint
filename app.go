@@ -33,10 +33,10 @@ func (KVStoreApplication) Info(req abcitypes.RequestInfo) abcitypes.ResponseInfo
 
 func (app *KVStoreApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.ResponseDeliverTx {
 	// fmt.Println("Inside DeliverTx")
-	code := app.isValid(req.Tx)
+	code, _ := app.isValid(req.Tx)
 	if code != 0 {
 		fmt.Println("DeliverTx code:", code)
-		return abcitypes.ResponseDeliverTx{Code: code}
+		return abcitypes.ResponseDeliverTx{Code: code, Log: "DeliverTx: Invalid Transaction"}
 	}
 
 	parts := bytes.Split(req.Tx, []byte("="))
@@ -70,10 +70,10 @@ func (app *KVStoreApplication) Query(reqQuery abcitypes.RequestQuery) (resQuery 
 		}
 		if err == badger.ErrKeyNotFound {
 			fmt.Println(err)
-			resQuery.Log = "does not exist"
+			resQuery.Log = "Key not Found"
 		} else {
 			return item.Value(func(val []byte) error {
-				resQuery.Log = "exists"
+				resQuery.Log = "Key Found"
 				resQuery.Value = val
 				return nil
 			})

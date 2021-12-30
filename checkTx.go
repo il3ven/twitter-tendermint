@@ -39,19 +39,18 @@ func verifySignature(txData TxData) (bool, error) {
 	return ecdsa.Verify(publicKey.(*ecdsa.PublicKey), hash[:], r, s), nil
 }
 
-func (app *KVStoreApplication) isValid(tx []byte) (code uint32) {
+func (app *KVStoreApplication) isValid(tx []byte) (code uint32, errMsg string) {
 	fmt.Println("Incoming tx", string(tx[:]))
 	// check format
 	parts := bytes.Split(tx, []byte("="))
 	if len(parts) != 2 {
-		fmt.Println("Transaction cannot be divided")
-		return 1
+		return 1, "Transaction cannot be divided"
 	}
 
 	key, value := parts[0], parts[1]
 	if !json.Valid(value) {
 		fmt.Println("JSON is not valid", value)
-		return 1
+		return 1, "Invalid JSON"
 	}
 
 	// check if the same key=value already exists
@@ -63,7 +62,6 @@ func (app *KVStoreApplication) isValid(tx []byte) (code uint32) {
 		if err == nil {
 			return item.Value(func(val []byte) error {
 				if bytes.Equal(val, value) {
-					fmt.Println("Key already exists")
 					code = 1
 				}
 				return nil
@@ -77,7 +75,7 @@ func (app *KVStoreApplication) isValid(tx []byte) (code uint32) {
 	}
 
 	if code != 0 {
-		return code
+		return code, "Duplicate Key"
 	}
 
 	// new key
@@ -85,23 +83,23 @@ func (app *KVStoreApplication) isValid(tx []byte) (code uint32) {
 	json.Unmarshal(value, &txData)
 	signValid, err := verifySignature(txData)
 	if err != nil {
-		fmt.Println("Error in verifySignature")
+		errMsg = "Invalid Signature"
 		code = 2
 	}
 
 	if signValid {
-		fmt.Println("Signature Valid")
+		errMsg = "Valid Signature"
 		code = 0
 	} else {
-		fmt.Println("Signature is not valid")
+		errMsg = "Invalid Signature"
 		code = 1
 	}
 
-	return code
+	return code, errMsg
 }
 
 func (app *KVStoreApplication) CheckTx(req abcitypes.RequestCheckTx) abcitypes.ResponseCheckTx {
-	code := app.isValid(req.Tx)
+	code, log := app.isValid(req.Tx)
 	fmt.Println("CheckTx code:", code)
-	return abcitypes.ResponseCheckTx{Code: code}
+	return abcitypes.ResponseCheckTx{Code: code, Log: log}
 }
