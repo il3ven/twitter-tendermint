@@ -17,9 +17,22 @@
   >
     <h1 style="text-align: center">Twitter</h1>
     <hr />
-    <form onsubmit="event.preventDefault();">
-      <input type="text" placeholder="Add a post..." />
-      <input type="text" placeholder="Your Private Key..." />
+    <form
+      id="post-form"
+      onsubmit="event.preventDefault(); addPost('post-form');"
+    >
+      <input
+        type="text"
+        name="add-post"
+        placeholder="Add a post..."
+        value="123"
+      />
+      <input
+        type="text"
+        name="private-key"
+        placeholder="Your Private Key..."
+        value="3081b6020100301006072a8648ce3d020106052b8104002204819e30819b0201010430678e9442ee17eec712bc94a174fb3ddc4ba9408d34f65da5c901ff1d55ebf4c742b266a394631a6a3617a221fbd94b19a164036200040ef2ef98bbc5df0044bab9866bfdd6f7b2ed6e33ce29b978ebf1b82e872f9d92881ce36461e1d940bb9f3ef66430721d4820cc7fb7e4919b29e78b09d5927a5a1e11a97de7d263e041b6f8fa19e45de8c2499b038c3f010e90c7306670838df5"
+      />
       <input type="submit" />
     </form>
     <form>
@@ -30,8 +43,10 @@
       />
     </form>
     <p id="keys"></p>
-    <h2>All Posts</h2>
-    <ul id="posts">
+    <pre id="error" style="color: #ff4949"></pre>
+    <p id="success"></p>
+    <h2 style="margin-top: 6rem">All Posts</h2>
+    <ul id="posts" style="list-style: none; padding: 0">
       <li></li>
     </ul>
   </body>
