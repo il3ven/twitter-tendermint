@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
 
 	"crypto/ecdsa"
 	"crypto/sha256"
@@ -31,10 +32,15 @@ func verifySignature(txData TxData) (bool, error) {
 	}
 
 	hash := sha256.Sum256([]byte(txData.Msg))
-	return ecdsa.VerifyASN1(publicKey.(*ecdsa.PublicKey), hash[:], sig), nil
+	mid := len(sig) / 2
+	r, s := new(big.Int), new(big.Int)
+	r.SetBytes(sig[:mid])
+	s.SetBytes(sig[mid:])
+	return ecdsa.Verify(publicKey.(*ecdsa.PublicKey), hash[:], r, s), nil
 }
 
 func (app *KVStoreApplication) isValid(tx []byte) (code uint32) {
+	fmt.Println("Incoming tx", string(tx[:]))
 	// check format
 	parts := bytes.Split(tx, []byte("="))
 	if len(parts) != 2 {
