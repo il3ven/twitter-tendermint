@@ -4,6 +4,10 @@ const errorId = "error";
 const postId = "posts";
 const succcessId = "success";
 
+const enc = new TextEncoder();
+const dec = new TextDecoder();
+
+/** Util Functions*/
 function hexToBytes(hex) {
   for (var bytes = [], c = 0; c < hex.length; c += 2)
     bytes.push(parseInt(hex.substr(c, 2), 16));
@@ -17,10 +21,25 @@ function ab2hex(buf) {
     .map((v) => v.toString(16).padStart(2, "0"))
     .join("");
 }
-
 function uuid() {
   const uint32 = crypto.getRandomValues(new Uint32Array(1))[0];
   return uint32.toString(16);
+}
+function generateKeyPair() {
+  return crypto.subtle.generateKey(
+    {
+      name: "ECDSA",
+      namedCurve: "P-384",
+    },
+    true,
+    ["sign", "verify"]
+  );
+}
+async function cryptoKey2String(priv, pub) {
+  const exportedPub = await crypto.subtle.exportKey("spki", pub);
+  const exportedPriv = await crypto.subtle.exportKey("pkcs8", priv);
+
+  return [ab2hex(exportedPriv), ab2hex(exportedPub)];
 }
 
 async function fetchAllPosts() {
@@ -68,7 +87,6 @@ async function fetchAllPosts() {
 
 async function addPost(formId) {
   try {
-    const enc = new TextEncoder();
     const form = new FormData(document.getElementById(formId));
     const privHexString = form.get("private-key");
     const post = form.get("add-post");
@@ -123,6 +141,7 @@ async function addPost(formId) {
   }
 }
 
+/** Render Functions */
 function renderPosts(posts, id) {
   const ul = document.getElementById(id);
 
@@ -141,24 +160,6 @@ function renderPosts(posts, id) {
     .join("");
 }
 
-function generateKeyPair() {
-  return crypto.subtle.generateKey(
-    {
-      name: "ECDSA",
-      namedCurve: "P-384",
-    },
-    true,
-    ["sign", "verify"]
-  );
-}
-
-async function cryptoKey2String(priv, pub) {
-  const exportedPub = await crypto.subtle.exportKey("spki", pub);
-  const exportedPriv = await crypto.subtle.exportKey("pkcs8", priv);
-
-  return [ab2hex(exportedPriv), ab2hex(exportedPub)];
-}
-
 async function renderKeys(id) {
   const { privateKey, publicKey } = await generateKeyPair();
   const [priv, pub] = await cryptoKey2String(privateKey, publicKey);
@@ -174,13 +175,10 @@ async function renderKeys(id) {
   `;
 }
 
-const enc = new TextEncoder();
-const dec = new TextDecoder();
-
 (async () => {
   const posts = await fetchAllPosts();
   console.log("Fetched Posts", posts);
-  renderPosts(posts, "posts");
+  renderPosts(posts, postId);
 
   // const _priv = hexToBytes(
   //   "3081b6020100301006072a8648ce3d020106052b8104002204819e30819b02010104302a0131d13b906af21afa4f220368276fa508802e413269e5ce53f08c8ec7e857456471624bbabf4ea85f7e8d47661556a164036200040b80a84bcf25ee5d415425160d4c5f3a3a056c1c95933fd5b277f8986f7660e1e5a25a53f0a402cb1890dfbe7182b5f16b2aa48e8581fdac6532cba3c35e795204aec9e0776d6042b4fdc7d7f7d44f6619612037acee731e21dd3df65130ea66"
